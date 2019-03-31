@@ -1,41 +1,38 @@
 const express = require('express');
 const app = express();
 const port = 3000;
-const player = require('play-sound')(opts = {});
-const load = require('audio-loader');
+const { exec } = require('child_process');
 
-let audio = undefined;
-let duration = 30;
+let audio = false;
+let duration = 67;
 
-async function init(){
-  const buffer = load('assets/kaddish.mp3').then(function(s){
-    duration = s.duration;
-    
-    const timeoutDuration = Math.ceil(1000 * duration);
+const timeoutDuration = Math.ceil(1000 * duration);
 
-    console.log('Recording length: ' + timeoutDuration + 'ms');
+console.log('Recording length: ' + timeoutDuration + 'ms');
 
-    app.get('/motion-detected', (req, res) => {
-       console.log('Motion detected');
-       if (!audio){
-           console.log('Start playing');
-	   audio = player.play('assets/kaddish.mp3', function(err){
-	    if (err && !err.killed) throw err
-	   });
+app.get('/motion-detected', (req, res) => {
+	console.log('Motion detected');
 
-           setTimeout(function(){
-             console.log('Done playing');
-	     audio = undefined;
-           }, timeoutDuration);
-       } 
+	if (!audio){
+		audio = true;
+		console.log('Start playing');
+		exec('omxplayer assets/kaddish.mp3', (err, stdout, stderr) => {
+			if(err){
+				console.error(err);
+				return;
+			}
+			console.log(stdout);
+		});
+	};
 
-       res.sendStatus(200);
-    });
+	setTimeout(function(){
+		console.log('Done playing');
+		audio = false;
+	}, timeoutDuration);
 
-    app.get('/', (req, res) => res.send('Hello World!'))
+	res.sendStatus(200);
+});
 
-    app.listen(port, () => console.log(`Kaddish app listening on port ${port}!`))
-  });
-}
+app.get('/', (req, res) => res.send('Hello World!'))
 
-init();
+app.listen(port, () => console.log(`Kaddish app listening on port ${port}!`))
