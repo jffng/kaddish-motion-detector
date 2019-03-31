@@ -1,0 +1,14 @@
+[Unit]
+Description=Kaddish Node Server Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node index.js
+WorkingDirectory=/home/pi/Downloads/kaddish-motion-detector
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
